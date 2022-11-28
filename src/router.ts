@@ -5,6 +5,7 @@ import AuthController from "./controller/AuthController";
 import ProductController from "./controller/ProductController";
 import { validateAdmin, validateUser } from "./middleware/ValidateRole";
 import upload from "./middleware/StoreFiles";
+import DashboardController from "./controller/DashboardController";
 
 export const router = Router();
 
@@ -14,6 +15,24 @@ router
   .post("/auth/register", AuthController.register)
   .get("/auth/confirm/:hash", AuthController.confirmUser);
 
+// DASHBOARD ROUTES
+router
+  .get("/dashboard/total/users", validateUser, DashboardController.totalUsers)
+  .get(
+    "/dashboard/total/sellers",
+    validateUser,
+    DashboardController.totalSellers
+  )
+  .get(
+    "/dashboard/total/products",
+    validateUser,
+    DashboardController.totalProducts
+  )
+  .get(
+    "/dashboard/total/reviews",
+    validateUser,
+    DashboardController.totalReviews
+  );
 
 // ME ROUTES
 router

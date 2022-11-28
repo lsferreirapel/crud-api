@@ -6,6 +6,7 @@ import ProductController from "./controller/ProductController";
 import { validateAdmin, validateUser } from "./middleware/ValidateRole";
 import upload from "./middleware/StoreFiles";
 import DashboardController from "./controller/DashboardController";
+import PdfController from "./controller/PdfController";
 
 export const router = Router();
 
@@ -72,3 +73,8 @@ router
   .get("/ratings/:id", validateUser, RatingController.readById)
   .patch("/ratings", validateUser, RatingController.update)
   .delete("/ratings", validateUser, RatingController.delete);
+
+// PDF ROUTES
+router
+  .get("/products/html/list", PdfController.listProductsHTML)
+  .get("/products/pdf/list", PdfController.productsPDF);

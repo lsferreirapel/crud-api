@@ -73,9 +73,34 @@ async function create(req: Request, res: Response) {
 }
 
 async function readAll(req: Request, res: Response) {
-  const foundUsers = await knex<User>("users").select("*");
+  const q = req?.query?.q;
+  const page = Number(req.query._page ?? 0);
+  const limit = Number(req.query._limit ?? 20);
 
-  return res.status(httpSuccess.OK.code).json(foundUsers);
+  const baseQueryBuilder = knex<User>("users")
+    .select("*")
+    .offset(page <= 0 ? 0 : page - 1)
+    .limit(limit);
+
+  if (q) {
+    baseQueryBuilder
+      .whereLike("firstName", `%${q}%`)
+      .orWhereLike("lastName", `%${q}%`)
+      .orWhereLike("email", `%${q}%`)
+      .orWhereLike("document", `%${q}%`)
+      .orWhereLike("birthDate", `%${q}%`);
+  }
+
+  try {
+    const foundUsers = await baseQueryBuilder;
+
+    return res.status(httpSuccess.OK.code).json(foundUsers);
+  } catch (err) {
+    res.status(httpErrors.INTERNAL_SERVER_ERROR.code).json({
+      ...httpErrors.INTERNAL_SERVER_ERROR,
+      message: err,
+    });
+  }
 }
 
 async function readById(req: Request, res: Response) {
@@ -148,9 +173,12 @@ async function del(req: Request, res: Response) {
 async function readMe(req: Request, res: Response) {
   const id = (req as any)?.userId;
 
-  const foundUser = await knex<User>("users").select("*").where({
-    id,
-  });
+  const foundUser = await knex<User>("users")
+    .select("*")
+    .where({
+      id,
+    })
+    ?.first();
 
   if (!foundUser) {
     return res.status(httpErrors.NOT_FOUND.code).json(httpErrors.NOT_FOUND);

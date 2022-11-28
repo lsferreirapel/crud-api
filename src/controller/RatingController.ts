@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import knex from "../../db/db_config";
 import { httpErrors, httpSuccess } from "../common/constants/httpMessages";
-import { Product, Rating } from "../types";
+import { Rating } from "../types";
 
 async function create(req: Request, res: Response) {
   const { value, user_id, product_id }: Partial<Rating> = req.body;
@@ -31,9 +31,38 @@ async function create(req: Request, res: Response) {
 }
 
 async function readAll(req: Request, res: Response) {
-  const foundRatings = await knex<Rating>("ratings").select("*");
+  const q = req?.query?.q;
+  const page = Number(req.query._page ?? 0);
+  const limit = Number(req.query._limit ?? 20);
 
-  return res.status(httpSuccess.OK.code).json(foundRatings);
+  const baseQueryBuilder = knex<Rating>("ratings")
+    .select(
+      "ratings.*",
+      "users.firstName as user_firstName",
+      "products.name as product_name"
+    )
+    .leftJoin("users", "users.id", "ratings.user_id")
+    .leftJoin("product", "product.id", "ratings.product_id")
+    .offset(page <= 0 ? 0 : page - 1)
+    .limit(limit);
+
+  if (q) {
+    baseQueryBuilder
+      .whereLike("value", `%${q}%`)
+      .orWhereLike("user_firstName", `%${q}%`)
+      .orWhereLike("product_name", `%${q}%`);
+  }
+
+  try {
+    const foundRatings = await baseQueryBuilder;
+
+    return res.status(httpSuccess.OK.code).json(foundRatings);
+  } catch (err) {
+    res.status(httpErrors.INTERNAL_SERVER_ERROR.code).json({
+      ...httpErrors.INTERNAL_SERVER_ERROR,
+      message: err,
+    });
+  }
 }
 
 async function readById(req: Request, res: Response) {

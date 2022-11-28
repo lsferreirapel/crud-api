@@ -41,9 +41,36 @@ async function create(req: Request, res: Response) {
 }
 
 async function readAll(req: Request, res: Response) {
-  const foundProducts = await knex<Product>("products").select("*");
+  const q = req?.query?.q;
+  const page = Number(req.query._page ?? 0);
+  const limit = Number(req.query._limit ?? 20);
 
-  return res.status(httpSuccess.OK.code).json(foundProducts);
+  const baseQueryBuilder = knex<Product>("products")
+    .select(
+      "products.*",
+      "users.firstName as owner_firstName",
+      "users.lastName as owner_lastName"
+    )
+    .leftJoin("users", "users.id", "products.owner_id")
+    .offset(page <= 0 ? 0 : page - 1)
+    .limit(limit);
+
+  if (q) {
+    baseQueryBuilder
+      .whereLike("name", `%${q}%`)
+      .orWhereLike("description", `%${q}%`);
+  }
+
+  try {
+    const foundProducts = await baseQueryBuilder;
+
+    return res.status(httpSuccess.OK.code).json(foundProducts);
+  } catch (err) {
+    res.status(httpErrors.INTERNAL_SERVER_ERROR.code).json({
+      ...httpErrors.INTERNAL_SERVER_ERROR,
+      message: err,
+    });
+  }
 }
 
 async function readById(req: Request, res: Response) {

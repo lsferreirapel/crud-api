@@ -16,6 +16,11 @@ export const httpErrors = {
     code: 403,
     alias: "FORBIDDEN",
   },
+  NEED_ACTIVE: {
+    message: "The user account needs to be activated.",
+    code: 403,
+    alias: "NEED_ACTIVE",
+  },
   NOT_FOUND: {
     message: "The server cannot find the requested resource.",
     code: 404,

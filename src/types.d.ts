@@ -15,6 +15,8 @@ export interface User extends Base {
   password: string;
   document: string;
   role: Role;
+  active: boolean;
+  confirmation_hash: string;
 }
 
 export interface Product extends Base {

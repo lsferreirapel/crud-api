@@ -11,7 +11,9 @@ export const router = Router();
 // AUTH ROUTES
 router
   .post("/auth/login", AuthController.login)
-  .post("/auth/register", AuthController.register);
+  .post("/auth/register", AuthController.register)
+  .get("/auth/confirm/:hash", AuthController.confirmUser);
+
 
 // ME ROUTES
 router

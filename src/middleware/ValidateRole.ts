@@ -30,6 +30,12 @@ export async function validateUser(
       return res.status(httpErrors.FORBIDDEN.code).json(httpErrors.FORBIDDEN);
     }
 
+    if (!foundUser.active) {
+      return res
+        .status(httpErrors.NEED_ACTIVE.code)
+        .json(httpErrors.NEED_ACTIVE);
+    }
+
     (req as any).userId = foundUser.id;
     (req as any).userRole = foundUser.role;
 
@@ -61,6 +67,12 @@ export async function validateAdmin(
 
     if (foundUser?.role !== "ADMIN") {
       return res.status(httpErrors.FORBIDDEN.code).json(httpErrors.FORBIDDEN);
+    }
+
+    if (!foundUser.active) {
+      return res
+        .status(httpErrors.NEED_ACTIVE.code)
+        .json(httpErrors.NEED_ACTIVE);
     }
 
     (req as any).userId = foundUser.id;

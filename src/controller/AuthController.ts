@@ -131,24 +131,26 @@ async function register(req: Request, res: Response) {
 
   const confirmation_hash = Md5.hashStr(email + document + Date.now());
 
-  await _sendEmail(firstName + " " + lastName, email, hash);
-
   try {
-    const createdUser = await knex<User>("users").insert({
-      firstName,
-      lastName,
-      birthDate,
-      document,
-      email,
-      password: hash,
-      role,
-      created_at: new Date().toISOString(),
-      confirmation_hash,
-    });
+    await knex.transaction(async (trx) => {
+      await _sendEmail(firstName + " " + lastName, email, confirmation_hash);
 
-    return res.status(httpSuccess.CREATED.code).json({
-      id: createdUser[0],
-      ...httpSuccess.CREATED,
+      const createdUser = await trx<User>("users").insert({
+        firstName,
+        lastName,
+        birthDate,
+        document,
+        email,
+        password: hash,
+        role,
+        created_at: new Date().toISOString(),
+        confirmation_hash,
+      });
+
+      return res.status(httpSuccess.CREATED.code).json({
+        id: createdUser[0],
+        ...httpSuccess.CREATED,
+      });
     });
   } catch (err) {
     res.status(httpErrors.INTERNAL_SERVER_ERROR.code).json({

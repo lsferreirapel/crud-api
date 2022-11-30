@@ -30,7 +30,7 @@ router
     DashboardController.totalProducts
   )
   .get(
-    "/dashboard/total/reviews",
+    "/dashboard/total/ratings",
     validateUser,
     DashboardController.totalReviews
   );
@@ -71,8 +71,8 @@ router
   .post("/ratings", validateUser, RatingController.create)
   .get("/ratings", validateUser, RatingController.readAll)
   .get("/ratings/:id", validateUser, RatingController.readById)
-  .patch("/ratings", validateUser, RatingController.update)
-  .delete("/ratings", validateUser, RatingController.delete);
+  .patch("/ratings/:id", validateUser, RatingController.update)
+  .delete("/ratings/:id", validateUser, RatingController.delete);
 
 // PDF ROUTES
 router

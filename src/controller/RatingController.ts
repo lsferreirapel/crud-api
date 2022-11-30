@@ -4,7 +4,9 @@ import { httpErrors, httpSuccess } from "../common/constants/httpMessages";
 import { Rating } from "../types";
 
 async function create(req: Request, res: Response) {
-  const { value, user_id, product_id }: Partial<Rating> = req.body;
+  const { value, product_id }: Partial<Rating> = req.body;
+
+  const user_id = (req as any)?.userId;
 
   if (!value || !user_id || !product_id) {
     return res.status(httpErrors.BAD_REQUEST.code).json(httpErrors.BAD_REQUEST);
@@ -42,7 +44,7 @@ async function readAll(req: Request, res: Response) {
       "products.name as product_name"
     )
     .leftJoin("users", "users.id", "ratings.user_id")
-    .leftJoin("product", "product.id", "ratings.product_id")
+    .leftJoin("products", "products.id", "ratings.product_id")
     .offset(page <= 0 ? 0 : page - 1)
     .limit(limit);
 
@@ -89,6 +91,8 @@ async function update(req: Request, res: Response) {
   const update = req.body;
 
   delete update?.id;
+  delete update?.user_id;
+  delete update?.product_id;
   delete update?.created_at;
   delete update?.updated_at;
 
